@@ -1,6 +1,7 @@
 # Todo #
 
 This plugin is still in development. The following are known issues and need to be addressed
+
 - Improve chain location for checking uploads and handling of the options form
 - Allow more then one slideshow
 - Allow options such as width, height, speed of fade through options screen
