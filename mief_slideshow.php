@@ -35,7 +35,7 @@ define('MIEF_SLIDER_ASSETS_DIR', MIEF_SLIDER_PLUGIN_DIR_URL . 'assets/');
 define('MIEF_SLIDESHOW_TABLE', $wpdb->prefix . "mief_slideshow");
 
 if (is_admin()) {
-	require_once(dirname(__FILE__) . '/admin.php');
+    require_once(dirname(__FILE__) . '/admin.php');
 }
 
 /**
@@ -44,30 +44,30 @@ if (is_admin()) {
  * as such.
  */
 function mief_slideshow() {
-	wp_enqueue_script('jquery');
-	wp_enqueue_script(
-		'mief_slider'
-		, MIEF_SLIDER_ASSETS_DIR . 'js/slider.js'
-	);
+    wp_enqueue_script('jquery');
+    wp_enqueue_script(
+        'mief_slider'
+        , MIEF_SLIDER_ASSETS_DIR . 'js/slider.js'
+    );
 
-	wp_enqueue_style(
-		'mief_slider'
-		, MIEF_SLIDER_ASSETS_DIR . 'style/slider.css'
-	);
+    wp_enqueue_style(
+        'mief_slider'
+        , MIEF_SLIDER_ASSETS_DIR . 'style/slider.css'
+    );
 
-	$photos = mief_slideshow_get_images();
-	require_once(plugin_dir_path(__FILE__) . 'templates/slideshow.php');;
+    $photos = mief_slideshow_get_images();
+    require_once(plugin_dir_path(__FILE__) . 'templates/slideshow.php');
 }
 
 function mief_slideshow_get_images() {
-	global $wpdb;
+    global $wpdb;
 
-	$query = sprintf('SELECT * FROM %s ORDER BY weight ASC', MIEF_SLIDESHOW_TABLE);
-	$results = $wpdb->get_results($query);
+    $query = sprintf('SELECT * FROM %s ORDER BY weight ASC', MIEF_SLIDESHOW_TABLE);
+    $results = $wpdb->get_results($query);
 
-	foreach ($results as &$row) {
-		$row->filename = unserialize($row->filename);
-	}
+    foreach ($results as &$row) {
+        $row->filename = unserialize($row->filename);
+    }
 
-	return $results;
+    return $results;
 }
