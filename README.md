@@ -38,8 +38,8 @@ Easily install the plugin following these instructions:
 
 # Thanks to #
 
-http://www.oxygen-icons.org/
+http://www.oxygen-icons.org/  
 For its icons I use for the navigation.
 
-Ron van Rutten <http://www.ronvanrutten.com>  
+Ron van Rutten <http://www.ronvanrutten.com>
 Who needed a plugin to replace his flash based slideshow!
