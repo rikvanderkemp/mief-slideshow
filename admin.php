@@ -23,11 +23,17 @@ require_once('../wp-admin/includes/file.php');
 
 add_action('admin_menu', 'mief_admin_menu');
 register_activation_hook(__FILE__, 'mief_slideshow_install');
+
+//@todo find better location in the wp chain for these checkers
 add_action('plugins_loaded', 'mief_slideshow_update_db_check');
 add_action('plugins_loaded', 'mief_slideshow_detect_upload');
 add_action('plugins_loaded', 'mief_slideshow_detect_form');
 
-
+/**
+ * Detect file upload and handle it
+ *
+ * return void
+ */
 function mief_slideshow_detect_upload() {
     if (!empty($_FILES)) {
         global $wpdb;
@@ -101,10 +107,20 @@ function mief_slideshow_detect_form() {
     }
 }
 
+/**
+ * Add an action menu to the admin panel
+ *
+ * @return void
+ */
 function mief_admin_menu() {
     add_options_page('Mief Slideshow options', 'Mief.nl - Slideshow', 'manage_options', 'mief_slideshow_plugin', 'mief_plugin_options');
 }
 
+/**
+ * The options screen for uploading new images to the slideshow
+ *
+ * @return void
+ */
 function mief_plugin_options() {
     if (!current_user_can('manage_options')) {
         wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -118,6 +134,13 @@ function mief_plugin_options() {
 global $mief_slideshow_db_version;
 $mief_slideshow_db_version = "1.0";
 
+/**
+ * Implement wordpress install hook
+ *
+ * Add a new table to keep track of new photos and their sorting information
+ *
+ * @return void
+ */
 function mief_slideshow_install() {
     global $wpdb, $mief_slideshow_db_version;
 
@@ -141,6 +164,11 @@ function mief_slideshow_install() {
     }
 }
 
+/**
+ * Checking current database version
+ *
+ * @return void
+ */
 function mief_slideshow_update_db_check() {
     global $mief_slideshow_db_version;
     if (get_site_option('mief_slideshow_db_version') != $mief_slideshow_db_version) {
