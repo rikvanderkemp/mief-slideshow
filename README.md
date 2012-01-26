@@ -9,6 +9,12 @@ This plugin is still in development. The following are known issues and need to 
         - rename a slideshow
 - Allow options such as width, height, speed of fade through options screen
 
+# Changelog #
+
+1.1
+* Added support for multiple slideshows
+* Added preparation for storing settings such as widht,height etc
+
 
 # Installation #
 
