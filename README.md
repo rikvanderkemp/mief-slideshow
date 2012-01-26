@@ -4,6 +4,9 @@ This plugin is still in development. The following are known issues and need to 
 
 - Improve chain location for checking uploads and handling of the options form
 - Allow more then one slideshow
+    - basics are there:
+        - delete a slideshow
+        - rename a slideshow
 - Allow options such as width, height, speed of fade through options screen
 
 
@@ -38,7 +41,7 @@ Easily install the plugin following these instructions:
 
 # Thanks to #
 
-http://www.oxygen-icons.org/  
+http://www.oxygen-icons.org/
 For its icons I use for the navigation.
 
 Ron van Rutten <http://www.ronvanrutten.com>

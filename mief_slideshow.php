@@ -6,7 +6,7 @@
 	Plugin Name: Mief.nl - Slideshow
 	Plugin URI: http://mief.nl
 	Description: Simple html slideshow for photographs
-	Version: 1.0
+	Version: 1.1
 	Author: Rik van der Kemp
 	Author URI: http://mief.nl
 	License: GPL
@@ -33,6 +33,7 @@ define('WP_DEBUG', true);
 define('MIEF_SLIDER_PLUGIN_DIR_URL', plugin_dir_url(__FILE__));
 define('MIEF_SLIDER_ASSETS_DIR', MIEF_SLIDER_PLUGIN_DIR_URL . 'assets/');
 define('MIEF_SLIDESHOW_TABLE', $wpdb->prefix . "mief_slideshow");
+define('MIEF_SLIDESHOW_IDX_TABLE', $wpdb->prefix . "mief_slideshow_slideshow");
 
 if (is_admin()) {
     require_once(dirname(__FILE__) . '/admin.php');
@@ -43,7 +44,7 @@ if (is_admin()) {
  * This will load all images according to a slideshow id and show them
  * as such.
  */
-function mief_slideshow() {
+function mief_slideshow($slideshow = 1) {
     wp_enqueue_script('jquery');
     wp_enqueue_script(
         'mief_slider'
@@ -55,14 +56,22 @@ function mief_slideshow() {
         , MIEF_SLIDER_ASSETS_DIR . 'style/slider.css'
     );
 
-    $photos = mief_slideshow_get_images();
+    $photos = mief_slideshow_get_images($slideshow);
     require_once(plugin_dir_path(__FILE__) . 'templates/slideshow.php');
 }
 
-function mief_slideshow_get_images() {
+function mief_slideshow_get_images($slideshow_id) {
     global $wpdb;
 
-    $query = sprintf('SELECT * FROM %s ORDER BY weight ASC', MIEF_SLIDESHOW_TABLE);
+    if (!is_int($slideshow_id)) {
+        return false;
+    }
+
+    $query = sprintf(
+        'SELECT * FROM %s WHERE slideshow_id = %d ORDER BY weight ASC',
+        MIEF_SLIDESHOW_TABLE,
+        $slideshow_id
+    );
     $results = $wpdb->get_results($query);
 
     foreach ($results as &$row) {

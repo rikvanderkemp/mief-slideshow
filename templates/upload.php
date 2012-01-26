@@ -12,6 +12,15 @@
         </form>
     </div>
     <hr>
+    <div>
+        <p>
+            To use this slideshow use the template tag:
+            <code>
+                mief_slideshow(<?php echo (string) mief_get_slideshow_mid(); ?>);
+            </code>
+        </p>
+    </div>
+    <hr>
     <div class="overview">
         <form action="" method="post">
             <input action="delete" type="hidden">

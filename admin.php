@@ -24,10 +24,7 @@ require_once('../wp-admin/includes/file.php');
 add_action('admin_menu', 'mief_admin_menu');
 register_activation_hook(__FILE__, 'mief_slideshow_install');
 
-//@todo find better location in the wp chain for these checkers
 add_action('plugins_loaded', 'mief_slideshow_update_db_check');
-add_action('plugins_loaded', 'mief_slideshow_detect_upload');
-add_action('plugins_loaded', 'mief_slideshow_detect_form');
 
 /**
  * Detect file upload and handle it
@@ -48,7 +45,8 @@ function mief_slideshow_detect_upload() {
                 $result = $wpdb->insert($table_name, array(
                     'filename' => serialize($file),
                     'url' => '',
-                    'weight' => 1
+                    'weight' => 1,
+                    'slideshow_id' => mief_get_slideshow_mid()
                 ));
             }
         }
@@ -95,7 +93,18 @@ function mief_slideshow_detect_form() {
         if (!empty($_POST['mief_slideshow_delete'])) {
             foreach ($_POST['mief_slideshow_delete'] as $pid => $status) {
                 $pid = (int)$pid;
+
                 if ($pid) {
+                    $image = sprintf(
+                        'SELECT filename FROM %s WHERE id = %d',
+                        MIEF_SLIDESHOW_TABLE,
+                        $pid
+                    );
+
+                    $image = $wpdb->get_row($image);
+                    $filename = unserialize($image->filename);
+                    @unlink($filename['file']);
+
                     $query = sprintf('DELETE FROM %s WHERE id=%d LIMIT 1',
                         MIEF_SLIDESHOW_TABLE,
                         $pid
@@ -103,6 +112,14 @@ function mief_slideshow_detect_form() {
                     $wpdb->query($query);
                 }
             }
+        }
+
+        if (!empty($_POST['mief_create'])) {
+            $title = trim(strip_tags($_POST['mief_create']));
+            $wpdb->insert(MIEF_SLIDESHOW_IDX_TABLE, array(
+                'title' => $title,
+                'settings' => serialize(array())
+            ));
         }
     }
 }
@@ -113,7 +130,7 @@ function mief_slideshow_detect_form() {
  * @return void
  */
 function mief_admin_menu() {
-    add_options_page('Mief Slideshow options', 'Mief.nl - Slideshow', 'manage_options', 'mief_slideshow_plugin', 'mief_plugin_options');
+    add_plugins_page('Mief Slideshow options', 'Slideshow', 'manage_options', 'mief_slideshow_plugin', 'mief_plugin_options');
 }
 
 /**
@@ -122,17 +139,88 @@ function mief_admin_menu() {
  * @return void
  */
 function mief_plugin_options() {
+    /** @var wpdb */
+    global $wpdb;
+
+    mief_slideshow_detect_upload();
+    mief_slideshow_detect_form();
+
     if (!current_user_can('manage_options')) {
         wp_die(__('You do not have sufficient permissions to access this page.'));
     }
 
-    $photos = mief_slideshow_get_images();
 
-    require_once(plugin_dir_path(__FILE__) . '/templates/upload.php');
+    $page = mief_get_page();
+
+    switch ($page) {
+        case 'upload':
+            $photos = mief_slideshow_get_images(mief_get_slideshow_mid());
+            require_once(plugin_dir_path(__FILE__) . '/templates/upload.php');
+            break;
+        default:
+            $slideshows = mief_get_all_slideshows();
+            require_once(plugin_dir_path(__FILE__) . '/templates/index.php');
+    }
+}
+
+/**
+ * Return all slideshows (without images)
+ *
+ * @return mixed
+ */
+function mief_get_all_slideshows() {
+    global $wpdb;
+    $sql = sprintf(
+        'SELECT * FROM %s',
+        MIEF_SLIDESHOW_IDX_TABLE
+    );
+    $result = $wpdb->get_results($sql);
+
+    if ($result) {
+        foreach ($result as &$slideshow) {
+            $slideshow->settings = unserialize($slideshow->settings);
+        }
+    }
+    return $result;
+}
+
+/**
+ * Get allowed page for this plugin
+ *
+ * @return string
+ */
+function mief_get_page() {
+    $pages = array('default', 'upload');
+    $page = 'default';
+
+    if (isset($_GET['mp'])) {
+        $raw = strip_tags($_GET['mp']);
+        if (in_array($raw, $pages)) {
+            if ($raw == 'upload') {
+                if (mief_get_slideshow_mid() !== false) {
+                    $page = $raw;
+                }
+            } else {
+                $page = $raw;
+            }
+        }
+    }
+    return $page;
+}
+
+function mief_get_slideshow_mid() {
+    $return = false;
+    if (isset($_GET['mid'])) {
+        $mid = (int) $_GET['mid'];
+        if ($mid > 0) {
+            $return = $mid;
+        }
+    }
+    return $return;
 }
 
 global $mief_slideshow_db_version;
-$mief_slideshow_db_version = "1.0";
+$mief_slideshow_db_version = "1.1";
 
 /**
  * Implement wordpress install hook
@@ -147,19 +235,57 @@ function mief_slideshow_install() {
     $installed_ver = get_option("mief_slideshow_db_version");
 
     if ($installed_ver != $mief_slideshow_db_version) {
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         $table_name = $wpdb->prefix . "mief_slideshow";
-        $sql = "CREATE TABLE " . $table_name . " (
-						  id mediumint(9) NOT NULL AUTO_INCREMENT,
-						  filename text NOT NULL,
-						  url VARCHAR(55) DEFAULT '' NOT NULL,
+
+        switch ($mief_slideshow_db_version) {
+            case '1.1':
+                $options_table = $table_name . '_slideshow';
+                $sql = sprintf(
+                    'CREATE TABLE %s (
+                        slideshow_id bigint NOT NULL AUTO_INCREMENT,
+                        title VARCHAR(160) NOT NULL,
+                        settings TEXT,
+                        UNIQUE KEY slideshow_id (slideshow_id)
+                    );',
+                    $options_table
+                );
+                $wpdb->query($sql);
+                $sql = sprintf(
+                  'ALTER TABLE %s ADD slideshow_id bigint NOT NULL',
+                    $table_name
+                );
+                $wpdb->query($sql);
+                $sql = sprintf(
+                  'INSERT INTO %s (title,settings) VALUES ("%s", "%s")',
+                    $options_table,
+                    'First slideshow',
+                    serialize(array())
+                );
+                $wpdb->query($sql);
+                $sql = sprintf(
+                    'UPDATE %s SET slideshow_id = %d',
+                    $table_name,
+                    1
+                );
+                $wpdb->query($sql);
+                break;
+            default:
+                $sql = sprintf(
+                    'CREATE TABLE %s (
+	                    id mediumint(9) NOT NULL AUTO_INCREMENT,
+	                    filename text NOT NULL,
+					    url VARCHAR(55) DEFAULT "" NOT NULL,
 						  weight mediumint(9) NOT NULL,
 						  UNIQUE KEY id (id)
-						);";
+						);',
+                    $table_name
+                );
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+                dbDelta($sql);
+                add_option("mief_slideshow_db_version", $mief_slideshow_db_version);
+        }
 
-        add_option("mief_slideshow_db_version", $mief_slideshow_db_version);
         update_option("mief_slideshow_db_version", $mief_slideshow_db_version);
     }
 }
