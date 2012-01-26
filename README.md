@@ -14,6 +14,7 @@ This plugin is still in development. The following are known issues and need to 
 1.1
 * Added support for multiple slideshows
 * Added preparation for storing settings such as widht,height etc
+* Removes photos from disk
 
 
 # Installation #
