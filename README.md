@@ -11,6 +11,10 @@ This plugin is still in development. The following are known issues and need to 
 
 # Changelog #
 
+1.1.1
+* Bug fix initial installation where the installer does not install all tables
+* Updated README file
+
 1.1
 * Added support for multiple slideshows
 * Added preparation for storing settings such as widht,height etc
@@ -28,7 +32,7 @@ Easily install the plugin following these instructions:
 2) Go into your admin panel and activate 'Mief.nl - Slideshow' under Plugins
 
 3) To upload new files to your slideshow (only 1 is possible right now) go to:
-        Settings -> Mief.nl - Slideshow and follow the instructions
+        Plugins -> Slideshow and follow the instructions
 
 4) Insert the proper template tag in your currently activated theme.
    Eg. in the Twenty Eleven theme you can edit Header.php and insert the tag at this location:
@@ -40,9 +44,10 @@ Easily install the plugin following these instructions:
                     /* Bunch of code here */
                 </hgroup>
 
-                <?php  mief_slideshow(); ?>
+                <?php  mief_slideshow(1); ?>
 
-    Notice the mief_slideshow(); ? That is the template tag to add.
+    Notice the mief_slideshow(1); ? That is the template tag to add. For each slideshow there is an unique tag
+    this will be shown in the editor of that slideshow.
 
 5) You are all set! Have fun!
 
