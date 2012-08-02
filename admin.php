@@ -238,6 +238,21 @@ function mief_slideshow_install() {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         $table_name = $wpdb->prefix . "mief_slideshow";
 
+        $sql = sprintf(
+            'CREATE TABLE %s (
+	                    id mediumint(9) NOT NULL AUTO_INCREMENT,
+	                    filename text NOT NULL,
+					    url VARCHAR(55) DEFAULT "" NOT NULL,
+						  weight mediumint(9) NOT NULL,
+						  UNIQUE KEY id (id)
+						);',
+            $table_name
+        );
+
+        dbDelta($sql);
+        add_option("mief_slideshow_db_version", $mief_slideshow_db_version);
+
+
         switch ($mief_slideshow_db_version) {
             case '1.1':
                 $options_table = $table_name . '_slideshow';
@@ -270,21 +285,7 @@ function mief_slideshow_install() {
                 );
                 $wpdb->query($sql);
                 break;
-            default:
-                $sql = sprintf(
-                    'CREATE TABLE %s (
-	                    id mediumint(9) NOT NULL AUTO_INCREMENT,
-	                    filename text NOT NULL,
-					    url VARCHAR(55) DEFAULT "" NOT NULL,
-						  weight mediumint(9) NOT NULL,
-						  UNIQUE KEY id (id)
-						);',
-                    $table_name
-                );
-
-                dbDelta($sql);
-                add_option("mief_slideshow_db_version", $mief_slideshow_db_version);
-        }
+            }
 
         update_option("mief_slideshow_db_version", $mief_slideshow_db_version);
     }
