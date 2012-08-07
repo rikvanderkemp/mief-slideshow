@@ -1,7 +1,8 @@
 <div class="wrap">
     <h1>Mief.nl - Slideshow</h1>
-
+    <hr>
     <div class="upload_form">
+        <h2>Add new photo</h2>
         <form action="" method="post" enctype="multipart/form-data">
             <label for="mief_slideshow_file">
                 <span>Add a new photo</span>
@@ -13,6 +14,7 @@
     </div>
     <hr>
     <div>
+        <h2>How to use</h2>
         <p>
             To use this slideshow use the template tag:
             <code>
@@ -21,7 +23,39 @@
         </p>
     </div>
     <hr>
+    <div class="settings">
+        <h2>Settings</h2>
+
+        <form action="" method="post">
+            <input type="hidden" name="action" value="settings">
+
+            <p>
+                <label for="setting[buttons]">
+                    <input type="checkbox" name="setting[buttons]" id="setting[buttons]"<?php if ($slideshow->settings['buttons'] == true): echo 'checked=checked'; endif; ?>>
+                    Show next and previous buttons
+                </label>
+            </p>
+
+            <p>
+                <label for="setting[width]">
+                    <input type="text" name="setting[width]" id="setting[width]" value="<?php echo $slideshow->settings['width']; ?>">
+                    Width
+                </label>
+
+                <label for="setting[height]">
+                    <input type="text" name="setting[height]" id="setting[height]" value="<?php echo $slideshow->settings['height']; ?>">
+                    Height
+                </label>
+            </p>
+
+            <p>
+                <input type="submit" value="Save settings">
+            </p>
+        </form>
+    </div>
+    <hr>
     <div class="overview">
+        <h2>Photos</h2>
         <form action="" method="post">
             <input action="delete" type="hidden">
             <input type="submit" value="Save changes">

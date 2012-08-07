@@ -256,4 +256,7 @@
 
 })(jQuery);
 
-jQuery('div.mief_slider').mief_slider();
+jQuery('div.mief_slider').mief_slider({
+    width: miefSlideShowParams.w,
+    height: miefSlideShowParams.h
+});

@@ -8,11 +8,15 @@
         </li>
         <?php endforeach; ?>
     </ul>
-
+    <?php
+        if (isset($slideshow->settings['buttons']) && $slideshow->settings['buttons'] == true):
+    ?>
     <div class="controls">
         <div class="prev"></div>
         <!--		<div class="pause"></div>-->
         <div class="next"></div>
     </div>
+    <?php endif; ?>
+
     <div class="progress"></div>
 </div>

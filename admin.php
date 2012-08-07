@@ -60,6 +60,7 @@ function mief_slideshow_detect_upload() {
  */
 function mief_slideshow_detect_form() {
     global $wpdb;
+    $action_whitelist = array('settings');
 
     if (!empty($_POST)) {
         if (!empty($_POST['mief_slideshow_weight'])) {
@@ -121,6 +122,13 @@ function mief_slideshow_detect_form() {
                 'settings' => serialize(array())
             ));
         }
+
+        if (!empty($_POST['action']) && in_array($_POST['action'], $action_whitelist)) {
+            $function = 'mief_slideshow_action_' . $_POST['action'];
+            if (function_exists($function)) {
+                call_user_func($function);
+            }
+        }
     }
 }
 
@@ -155,6 +163,7 @@ function mief_plugin_options() {
     switch ($page) {
         case 'upload':
             $photos = mief_slideshow_get_images(mief_get_slideshow_mid());
+            $slideshow = mief_get_slideshow(mief_get_slideshow_mid());
             require_once(plugin_dir_path(__FILE__) . '/templates/upload.php');
             break;
         default:
@@ -220,7 +229,7 @@ function mief_get_slideshow_mid() {
 }
 
 global $mief_slideshow_db_version;
-$mief_slideshow_db_version = "1.1";
+$mief_slideshow_db_version = "1.2";
 
 /**
  * Implement wordpress install hook
@@ -300,5 +309,46 @@ function mief_slideshow_update_db_check() {
     global $mief_slideshow_db_version;
     if (get_site_option('mief_slideshow_db_version') != $mief_slideshow_db_version) {
         mief_slideshow_install();
+    }
+}
+
+
+function mief_slideshow_action_settings() {
+    global $wpdb;
+
+    $mid = mief_get_slideshow_mid();
+    if ($mid) {
+        $slideshow = mief_get_slideshow($mid);
+        $post = $_POST['setting'];
+
+        $settings_whitelist = array(
+            'buttons' => array('on'),
+            'width' => array(),
+            'height' => array(),
+        );
+
+        foreach ($settings_whitelist as $setting => $value_options) {
+            if (is_array($post) && array_key_exists($setting, $post)) {
+                if (in_array($post[$setting], $settings_whitelist[$setting])) {
+                    $slideshow->settings[$setting] = ($post[$setting] === 'on'? true : $post[$setting]);
+                } else {
+                    if (sizeof($settings_whitelist[$setting]) == 0) {
+                        $slideshow->settings[$setting] = $post[$setting];
+                    } else {
+                        $slideshow->settings[$setting] = false;
+                    }
+                }
+            } else {
+                $slideshow->settings[$setting] = false;
+            }
+        }
+
+        $wpdb->update(
+            MIEF_SLIDESHOW_IDX_TABLE,
+            array(
+                'settings' => serialize($slideshow->settings)
+            ),
+            array('slideshow_id' => $mid)
+        );
     }
 }

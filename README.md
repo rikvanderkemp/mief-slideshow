@@ -11,6 +11,11 @@ This plugin is still in development. The following are known issues and need to 
 
 # Changelog #
 
+1.2
+* Width, height are adjustable
+* Option to disable the navigation buttons
+* Some headings and touch ups on the upload/edit screen
+
 1.1.1
 * Bug fix initial installation where the installer does not install all tables
 * Updated README file

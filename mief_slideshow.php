@@ -45,9 +45,25 @@ if (is_admin()) {
  * as such.
  */
 function mief_slideshow($slideshow = 1) {
+    $photos     = mief_slideshow_get_images($slideshow);
+    $slideshow  = mief_get_slideshow($slideshow);
+
+    $params     = array(
+        'h' => 350,
+        'w' => 1000
+    );
+
+    if (!empty($slideshow->settings['width'])) {
+        $params['w'] = (int)$slideshow->settings['width'];
+    }
+
+    if (!empty($slideshow->settings['height'])) {
+        $params['h'] = (int)$slideshow->settings['height'];
+    }
+
     wp_enqueue_script('jquery');
     wp_enqueue_script(
-        'mief_slider'
+        'mief_slider_slider'
         , MIEF_SLIDER_ASSETS_DIR . 'js/slider.js'
     );
 
@@ -56,8 +72,33 @@ function mief_slideshow($slideshow = 1) {
         , MIEF_SLIDER_ASSETS_DIR . 'style/slider.css'
     );
 
-    $photos = mief_slideshow_get_images($slideshow);
+    wp_localize_script( 'mief_slider_slider', 'miefSlideShowParams', $params );
+
     require_once(plugin_dir_path(__FILE__) . 'templates/slideshow.php');
+}
+
+
+/**
+ * Return slideshow (without images)
+ *
+ * @return mixed
+ */
+function mief_get_slideshow($mid) {
+    global $wpdb;
+    $sql = sprintf(
+        'SELECT * FROM %s WHERE slideshow_id = %d',
+        MIEF_SLIDESHOW_IDX_TABLE,
+        $mid
+    );
+    $result = $wpdb->get_results($sql);
+
+    if ($result) {
+        foreach ($result as &$slideshow) {
+            $slideshow->settings = unserialize($slideshow->settings);
+        }
+    }
+
+    return $result[0];
 }
 
 function mief_slideshow_get_images($slideshow_id) {
